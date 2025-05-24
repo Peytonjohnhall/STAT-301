@@ -1,0 +1,165 @@
+---
+title: "Homework 9"
+author: "Peyton Hall"
+date: "04/11/2025"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+```
+
+```{r}
+Car_data <- read_excel("~/Desktop/STAT 301/Week 10/Car data.xlsx")
+Car_data
+```
+
+Question 1 Code
+```{r Question 1 Code}
+# a)
+# select only numeric variables for PCA
+car_numeric <- Car_data[, c("DealerCost", "Price", "Engine", "MPG", "Weight")]
+car_scaled <- scale(car_numeric) # standardize the numeric data
+pca_result <- prcomp(car_scaled) # perform PCA
+eigenvalues <- pca_result$sdev^2 # (squared standard deviations of PCs)
+eigenvalues
+
+# b)
+# get proportion of variance explained
+variance_explained <- eigenvalues / sum(eigenvalues)
+sum(variance_explained[1:2]) # sum of first two components
+pca_result <- prcomp(~DealerCost + Price + Engine + MPG + Weight, data = Car_data, scale = TRUE)
+result <- summary(pca_result)
+result$importance
+
+# d)
+result$rotation
+
+# f) 
+biplot(pca_result)
+```
+
+```{r}
+library(readxl)
+personal_test_scores <- read_excel("~/Desktop/STAT 301/Week 10/personal test scores.xlsx")
+# personal_test_scores
+library(factoextra)
+```
+
+Question 2 Code
+```{r Question 2 Code}
+# a)
+pca_result2 <- prcomp(~Anxiety + Agoraphobia + Adventure + Sociability, data = personal_test_scores, scale = TRUE)
+result2 <- summary(pca_result2)
+get_eig(pca_result2)
+
+# b)
+eig_values <- get_eig(pca_result2)
+eig_values[1:2, "variance.percent"] # variance explained by PC1 and PC2
+# get the total variance explained by the first two components
+sum(eig_values[1:2, "variance.percent"])
+
+# d)
+pca_result2$rotation
+
+# e)
+biplot(pca_result2)
+```
+
+```{r}
+library(readxl)
+premium_and_discount_bond <- read_excel("~/Desktop/STAT 301/Week 10/premium and discount bond.xlsx")
+# premium_and_discount_bond
+```
+
+Question 3 Code
+```{r Question 3 Code}
+# remove the Date column and scale the data
+bond_data <- premium_and_discount_bond[, -1] # remove 'Date'
+pca_bond <- prcomp(bond_data, scale. = TRUE)
+
+# a)
+library(factoextra)
+get_eig(pca_bond)
+
+# b)
+summary(pca_bond)
+
+# c)
+fviz_eig(pca_bond)
+
+# d)
+pca_bond$rotation
+
+# e)
+biplot(pca_bond)
+```
+
+```{r}
+library(readxl)
+Heptathlon <- read_excel("~/Desktop/STAT 301/Week 10/Heptathlon.xlsx")
+Heptathlon
+```
+
+Question 4 Code
+```{r Question 4 Code}
+library(factoextra)
+
+# remove the Name column and scale the numeric data
+hep_data <- Heptathlon[, -1]
+pca_hep <- prcomp(hep_data, scale. = TRUE) # run PCA
+
+# a)
+get_eig(pca_hep)
+
+# b)
+summary(pca_hep)
+
+# c)
+fviz_eig(pca_hep)
+
+# d)
+pca_hep$rotation
+```
+
+```{r}
+library(readxl)
+MovieData <- read_excel("~/Desktop/STAT 301/Week 10/MovieData.xlsx")
+# MovieData
+```
+
+Question 5 Code
+```{r Question 5 Code}
+# install.packages("Rtsne")
+library(Rtsne)
+library(ggplot2)
+
+# prepare the numeric data for t-SNE (remove genres column)
+tsne_input <- scale(MovieData[, c("rating", "popularity", "vote_average")])
+
+set.seed(123) # reproducibility
+tsne_result <- Rtsne(tsne_input, dims = 2, perplexity = 30)
+
+# combine results with genres for plotting
+tsne_df <- data.frame(
+  X = tsne_result$Y[,1],
+  Y = tsne_result$Y[,2],
+  Genre = MovieData$genres
+)
+
+# t-SNE result
+ggplot(tsne_df, aes(x = X, y = Y, color = Genre)) +
+  geom_point(size = 2, alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "t-SNE of MovieData by Genre",
+       x = "Dimension 1", y = "Dimension 2")
+```
+
+
+
