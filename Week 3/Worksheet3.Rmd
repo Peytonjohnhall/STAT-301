@@ -1,0 +1,127 @@
+---
+title: "Worksheet 3"
+author: "Peyton Hall"
+date: "01/31/2025"
+output:
+  pdf_document:
+    latex_engine: lualatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+drugtype <- rep(c("drug1", "drug2", "drug3"), c(5, 7, 7))
+relieftime <- c(7.3, 8.2, 10.1, 6, 9.5, 7.1, 10.6, 11.2, 9, 8.5, 10.9, 7.8, 5.8, 
+                6.5, 8.8, 4.9, 7.9, 8.5, 5.2)
+myrelief <- data.frame(drugtype, relieftime)
+myrelief
+
+model1 <- aov(relieftime~drugtype, data = myrelief)
+summary(model1)
+```
+f = 4.188; p-value = 0.0345
+Reject H0; there is no evidence to support that the average relief time for the 
+three drugs are indentical.
+
+```{r}
+myrelief %>%
+  group_by(drugtype) %>%
+  summarize(avetime = mean(relieftime), setime = sd(relieftime)/
+              sqrt(length(relieftime)), 
+            tstar=qt(1-0.05/2, length(relieftime) - 1))%>%
+  ggplot(aes(x=drugtype, y=avetime)) + geom_point()+
+  geom_errorbar(aes(ymin=avetime -setime*tstar, ymax = avetime+setime*tstar))+
+  ylim(c(0,11))
+```
+
+There is various flickering light in our environment. For instance, light from
+computer screens and fluorescent bulb. If the frequency of the flicker is below 
+a certain threshold, the flicker can be detected by the eye. Different people 
+have different flicker "threshold" frequencies (known as the critical flicker 
+frequency, or CFF). Knowing the critical threshold frequency below which flicker
+is detected can be important for product manufacturing as well as tests for 
+ocular disease. Do people with different eye color have different threshold 
+flicker sensitivity? A 1973 study ("The Effect of Iris Color on Critical Flicker 
+Frequency", Journal of General Psychology (1973)) obtained the following data 
+(see worksheet) from a random sample of 19 subjects. Do these data suggest that
+people with different eye color have different threshold sensitivity to 
+flickering light?
+Worksheet 3 Number 1
+```{r Worksheet 3 Number 1}
+eyecolor <- rep(c("Brown", "Green", "Blue"), c(8,5,6))
+CFF <- c(26.8, 27.9, 23, 25, 26, 24.8, 25.7, 24.5, 26.4, 24.2, 28, 26.9, 29.1, 
+         25.7, 27.2, 29.9, 28.5, 29.4, 29.4)
+flickerdf <- data.frame(eyecolor, CFF)
+
+model2 <- aov(CFF~eyecolor, data=flickerdf)
+summary(model2)
+TukeyHSD(model2) # pairwise comparison test
+
+
+# Step 1: formulate the null and alternative hypotheses using symbols
+# H_0: μ_Brown = μ_Green = μ_Blue
+# H_a: at least 2 means are different
+
+# Step 2: choose one-way ANOVA test.
+
+# Step 3: Find the statistic and the p-value for testing the means from R output
+
+# Step 4: Make a decision based on significance level of 0.05; and explain your
+# decision in the context.
+
+# Step 5: If there is any significant differences among the means, perform a 
+# pairwise comparison to determine where the differences lie.
+```
+f = 5.442; p-value = 0.0157
+Reject H0; there is evidence to support that people with diff eye color have 
+diff threshold sensitivity to flickering lights.
+
+2. Referring to the data "James Intrusive Memory Activity", perform the 
+following one-way ANOVA tests by answering the questions below. The authors 
+compared the frequency of intrusive memories under four conditions: No task(1); 
+Reactivation plus Tetris (2); Reactivation only (3); and Tetris only (4). The 
+independent variable is the first column of the data '"Condition"
+```{r}
+James_Intrusive_Memories_Activity <- read_excel("~/Desktop/STAT 301/Week 3/James Intrusive Memories Activity.xlsx")
+James_Intrusive_Memories_Activity
+# a) Test to see if the mean frequency of intrusive memories are significantly 
+# different between the four conditions at day O, using the variable 
+# Day_Zero_Number_of_Intrusions with the 0.05 significance level.
+model4 <- aov(Day_Zero_Number_of_Intrusions~Condition, 
+              data=James_Intrusive_Memories_Activity)
+summary(model4)
+
+# b) Test to see if the mean frequency of intrusive memories are significantly 
+# different between the four conditions for the seven days following the 
+# experiment, using the variable Days_One_to_Seven_Number_of_Intrusions, with 
+# the significance level of 0.05.
+model4 <- aov(Days_One_to_Seven_Number_of_Intrusions~Condition, 
+              data=James_Intrusive_Memories_Activity)
+summary(model4)
+
+# C) continue with b), if you observe any significant difference, perform a 
+# multiple comparison to determine where the significant differences lie.
+TukeyHSD(model4) # pairwise comparison test
+```
+a)
+f = 0.163; p-value = 0.921
+Fail to reject H0; there is not enough evidence to support that the mean 
+frequency of intrusive memories are significantly different between the four 
+conditions at day O
+
+b)
+f = 3.795; p-value = 0.0141
+Reject H0; there is evidence to support that the mean frequency of intrusive 
+memories are significantly different between the four conditions for the seven 
+days following the experiment
+
+
+
+
