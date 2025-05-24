@@ -1,0 +1,40 @@
+---
+title: "Worksheet 12"
+author: "Peyton Hall"
+date: "04/25/2025"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 1
+```{r Question 1}
+library(readxl)
+Supermarket_data <- read_excel("~/Desktop/STAT 301/Week 14/Supermarket data.xlsx")
+Supermarket_data
+
+library(factoextra)
+library(stats)
+market1 <- scale(Supermarket_data[,c("meat", "fish", "vegetable", "ownbrand")])
+d2 <- dist(market1, method = "euclidean")
+model2 <- hclust(d2, method = "complete")
+fviz_dend(model2, main = "Cluster for the supermarket data")
+```
+
+Question 2
+```{r Question 2}
+library(readxl)
+Weather_data <- read_excel("~/Desktop/STAT 301/Week 14/Weather data.xlsx")
+Weather_data
+
+x1 <- scale(Weather_data[,c (2,3,4)])
+
+model4 <- kmeans(x1, centers = 4, nstart = 41)
+rownames(x1) <- Weather_data$City
+fviz_cluster(model4, data = x1)
+```
+

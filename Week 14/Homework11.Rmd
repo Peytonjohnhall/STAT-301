@@ -1,0 +1,82 @@
+---
+title: "Homework 11"
+author: "Peyton Hall"
+date: "04/26/2025"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 1
+```{r Question 1}
+library(readxl)
+shopping_mall_survey <- read_excel("~/Desktop/STAT 301/Week 14/shopping mall survey.xlsx")
+shopping_mall_survey
+
+# a)
+library(factoextra)
+q1df <- scale(shopping_mall_survey[,c("Question1", "Question2", "Question3", "Question4", "Question5")])
+q1dist <- dist(q1df, method = "euclidean")
+model1 <- hclust(q1dist, method = "complete")
+fviz_dend(model1, main = "Optimal number of clusters")
+
+# b)
+# centers = # of clusters, nstart = # of individuals
+# model1 <- kmeans(q1df, centers = 3, nstart = 10)
+# model1$cluster
+model1$labels <- c("A","B","C","D","E","F","G","H","I","J")
+fviz_dend(model1, main = "Optimal number of clusters")
+```
+
+Question 2
+```{r Question 2}
+library(readxl)
+personal_test_scores <- read_excel("~/Desktop/STAT 301/Week 14/personal teste scores.xlsx")
+personal_test_scores
+
+# a) & b)
+library(factoextra)
+q2df <- scale(personal_test_scores[,c("Anxiety", "Agoraphobia", "Arachnophobia", "Adventure", "Extraversion", "Sociability")])
+q2dist <- dist(q2df, method = "euclidean")
+model2 <- hclust(q2dist, method = "complete")
+fviz_dend(model2, main = "Optimal number of clusters")
+```
+
+Question 3
+```{r Question 3}
+library(readxl)
+student_grades <- read_excel("~/Desktop/STAT 301/Week 14/student grades.xlsx")
+student_grades
+
+# a)
+library(factoextra)
+q3df <- scale(student_grades[,c("Math", "Science", "Reading", "Art")])
+fviz_nbclust(q3df, kmeans, method = "wss")
+
+# b)
+model3 <- kmeans(q3df, centers = 3, nstart = 22) # 3 clusters, 22 observations
+fviz_cluster(model3, data = q3df)
+model3$cluster
+```
+
+Question 4
+```{r Question 4}
+library(readxl)
+nyc_flights <- read_excel("~/Desktop/STAT 301/Week 14/NYCflights.xlsx")
+nyc_flights
+
+# a)
+library(factoextra)
+q4df <- scale(nyc_flights[,c(4:6)])
+fviz_nbclust(q4df, kmeans, method = "wss")
+
+# b)
+model4 <- kmeans(q4df, centers = 4, nstart = 50)
+fviz_cluster(model4, data = q4df)
+model4$cluster
+```
+
