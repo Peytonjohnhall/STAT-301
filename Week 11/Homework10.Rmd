@@ -1,0 +1,107 @@
+---
+title: "Homework 10"
+author: "Peyton Hall"
+date: "04/15/2025"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 1
+```{r Question 1}
+library(readxl)
+otter_mandible_data <- read_excel("~/Desktop/STAT 301/Week 11/otter-mandible-data.xlsx")
+otter_mandible_data
+
+# a)
+library(MASS)
+lda_result1 <- lda(species~.-species, data = otter_mandible_data, prior = c(1/4, 1/4, 1/4, 1/4))
+length(lda_result1$svd)
+
+# b)
+lda_result1$svd # singular value decomposition
+# proportion of separation explained by each linear discriminant
+lda_result1$svd^2 / sum(lda_result1$svd^2)
+
+# c)
+question_1_type <- data.frame(mandibular.ramus.width=13, mandibular.ramus.height=30, moment.arm.temporalis=21, outlever.at.carnassial=10, moment.arm.masseter=12, jaw.length=60)
+predict(object = lda_result1, newdata = question_1_type)
+
+# d)
+library(ggplot2)
+question_1_result <- predict(lda_result1)
+otterdf <- data.frame(g3 = otter_mandible_data$species, question_1_transcore = question_1_result$x)
+ggplot(data = otterdf, aes(x = question_1_transcore.LD1, y = question_1_transcore.LD2)) + geom_point(aes(color = g3))
+```
+
+Question 2
+```{r Question 2}
+library(readxl)
+admission_data <- read_excel("~/Desktop/STAT 301/Week 11/admission data.xlsx")
+admission_data
+
+# a)
+library(MASS)
+lda_result2 <- lda(De~.-De, data = admission_data, prior = c(1/3, 1/3, 1/3))
+length(lda_result2$svd)
+
+# b)
+lda_result2$svd # singular value decomposition
+# proportion of separation explained by each linear discriminant
+lda_result2$svd^2 / sum(lda_result2$svd^2)
+
+# c)
+question_2_type <- data.frame(GPA = 2.0, GMAT = 690)
+predict(object = lda_result2, newdata = question_2_type)
+
+# d)
+question_2_type <- data.frame(GPA = 3.8, GMAT = 300)
+predict(object = lda_result2, newdata = question_2_type)
+
+# e)
+question_2_type <- data.frame(GPA = 3.8, GMAT = 550)
+predict(object = lda_result2, newdata = question_2_type)
+
+# g)
+library(ggplot2)
+question_2_result <- predict(lda_result2)
+admissiondf <- data.frame(g3 = admission_data$De, question_2_transcore = question_2_result$x)
+ggplot(data = admissiondf, aes(x = question_2_transcore.LD1, y = question_2_transcore.LD2)) + geom_point(aes(color = g3))
+```
+
+Question 3
+```{r Question 3}
+library(readxl)
+LEAD_data <- read_excel("~/Desktop/STAT 301/Week 11/LEAD data.xlsx")
+LEAD_data
+
+# a)
+library(MASS)
+lda_result3 <- lda(Group~iqv_comp+iqv_ar+iqv_ds+iqp_pc+iqp_bd+iqp_cod+iqf, data = LEAD_data, prior = c(1/2, 1/2))
+length(lda_result3$svd)
+
+# b)
+question_3_type <- data.frame(iqv_comp=9, iqv_ar=2, iqv_ds = 7, iqp_pc=10, iqp_bd=8, iqp_cod=20, iqf=90)
+predict(object = lda_result3, newdata = question_3_type)
+```
+
+Question 4
+```{r Question 4}
+library(readxl)
+chest_waist_hip_data <- read_excel("~/Desktop/STAT 301/Week 11/chest_waist_hip data.xlsx")
+chest_waist_hip_data
+
+# a)
+library(MASS)
+lda_result4 <- lda(Gender~.-Gender, data = chest_waist_hip_data, prior = c(1/2, 1/2))
+length(lda_result4$svd)
+
+# b)
+question_4_type <- data.frame(Chest=39, Waist=30, Hips=38)
+predict(object = lda_result4, newdata = question_4_type)
+```
+
