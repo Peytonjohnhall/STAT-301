@@ -1,0 +1,340 @@
+---
+title: "Homework 4"
+author: "Peyton Hall"
+date: "02/14/2025"
+output:
+  pdf_document:
+    latex_engine: lualatex
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Load Necessary Libraries
+```{r Load Necessary Libraries}
+library(readxl)
+library(tidyverse)
+library(ggplot2)
+```
+
+
+1. An obstetrician wanted to determine the impact that two experimental diets 
+(A and B) and age of moms had on the birth weights of the infants. She randomly 
+selected 18 pregnant mothers in the first trimester of whom 6 were 20 to 29 
+years old, 6 were 30 to 39 years old, and 6 were 40 or older. For each age 
+group, she randomly assigned the mothers to one of the two diets. After delivery 
+she measured the birth weights (in grams) of the babies and obtained the 
+following data. Assume that the data follow the normal distribution.
+Age,             Diet
+               A      B
+20 - 29,     4473,   3667
+             3878,   3139
+             3936,   3356
+30 - 39,     3886,   2762
+             4147,   3551
+             3693,   3272
+40 or older, 3878,   2781
+             4002,   3138
+             3382,   3435
+a) What is the null and alternative hypothesis, in symbols, for testing the main 
+effect of age?
+$H_0: μ_\text{20−29} = μ_\text{30−39} = μ_\text{40+}$ vs $H_a: \text{At least one μ differs}$
+b) What is the test statistic and p-value for testing the main effect of age?
+c) What conclusion in the context can you draw based on the p-value in b)? (is 
+there any significant mean weight difference between the three age groups?)
+d) What is the null and alternative hypothesis, in symbols, for testing the main 
+effect of diet?
+$H_0: μ_\text{DietA} = μ_\text{DietB}$ vs $H_a: μ_\text{DietA} ≠ μ_\text{DietB}$
+e) What is the test statistic and p-value for testing the main effect of diet?
+f) What conclusion in the context can you draw based on the p-value in e)? (is 
+there any significant mean weight difference between the A and B diet groups?)
+g) Is there a significant interaction between diet and age? List the p-value to 
+explain.
+
+Question 1 Code
+```{r Question 1 Code}
+# b) find test statistic and p-value
+age_group <- rep(c("20 - 29", "30 - 39", "40 or older"), each = 3)
+diet_a <- c(4473, 3878, 3936, 3886, 4147, 3693, 3878, 4002, 3382)
+diet_b <- c(3667, 3139, 3356, 2762, 3551, 3272, 2781, 3138, 3435)
+diet_data <- data.frame(Age = age_group, Diet_A = diet_a, Diet_B = diet_b)
+
+# reshape data to long format
+data_long <- pivot_longer(diet_data, cols = c(Diet_A, Diet_B), 
+                          names_to = "Diet", values_to = "Birth_Weight")
+data_long$Diet <- factor(data_long$Diet)
+data_long$Age <- factor(data_long$Age)
+
+anova_result1 <- aov(Birth_Weight~Age * Diet, data = data_long)
+summary(anova_result1)
+
+```
+f = 1.416; p-value = 0.280557
+Fail to reject H0; there is no evidence to support the claim that there is 
+significant mean weight difference between the three age groups.
+f = 21.005; p-value = 0.000629
+Reject H0; there is significant evidence to support the claim that significant 
+mean weight difference between the A and B diet groups exist.
+answer part g
+f = 0.028; p-value = 0.972449
+Fail to reject H0; there is no significant evidence to support the claim that 
+there is a significant interaction between diet and age.
+
+
+2. A researcher took 64 water samples from a stream running through a forest. 
+The samples were collected over the course of a year. Each sample was analyzed 
+for concentration of dissolved organic carbon (mg/L) in it. Each sample was 
+categorized according to the type of water collected: groundwater from organic 
+soil (Organic) or groundwater from mineral soil (Mineral), and categorized 
+according to the location of the sample: the surface of the stream or the bottom 
+of the stream.
+The researchers wanted to determine if the mean concentration of dissolved 
+organic carbon was the same between the two types of water collected, and 
+between the two locations. The researchers want to know which type of water has 
+the highest dissolved organic carbon. The data is on D2L. Answer the following 
+questions:
+a) What are the null and alternative of testing the mean difference between the 
+two types of water?
+$H_0: μ_\text{Organic} = μ_\text{Mineral}$ vs $H_a: μ_\text{Organic} ≠ μ_\text{Mineral}$
+b) What is the test statistic and p-value for a)?
+c) What conclusion in the context from the p-value in a)?
+d) What are the null and alternative of testing the mean difference between the 
+two locations?
+$H_0: μ_\text{Surface} = μ_\text{Bottom}$ vs $H_a: μ_\text{Surface} ≠ μ_\text{Bottom}$
+e) What is the test statistic and p-value for d)?
+f) What conclusion in the context from the p-value in d)?
+g) What is the test statistic and p-value for testing the interaction? What can 
+you conclude from that p-value?
+h) Generate an interaction plot. Based on the plot, which type of water at which 
+location reached the highest dissolved organic carbon?
+
+Question 2 Code
+```{r Question 2 Code}
+SoilTesting <- read_excel("~/Desktop/STAT 301/Week 4/SoilTesting.xls")
+SoilTesting$Carbon<-as.numeric(SoilTesting$Carbon)
+# b)
+organic <- SoilTesting[SoilTesting$Source == "organic", ]
+mineral <- SoilTesting[SoilTesting$Source == "mineral", ]
+t.test(organic$Carbon, mineral$Carbon, alternative = "two.sided", var.equal = TRUE)
+# e)
+surface <- SoilTesting %>% filter(Location == "surface")
+bottom <- SoilTesting %>% filter(Location == "bottom")
+t.test(surface$Carbon, bottom$Carbon, alternative = "two.sided", var.equal = TRUE)
+
+# g)
+interaction_result <- aov(Carbon~Source * Location, data = SoilTesting)
+summary(interaction_result)
+
+# h)
+ggplot(SoilTesting, aes(x = Source, y = Carbon, color = Location, group = Location)) +
+  geom_line(aes(linetype = Location)) +
+  geom_point() +
+  labs(title = "Interaction Plot", x = "Source of Water", y = "Dissolved Organic Carbon") +
+  theme_minimal()
+
+```
+b and c) f = 2.7642; p-value = 0.007504
+Reject h0; there is significant evidence to support the claim that the mean of
+the surface does not equal the mean of the bottom
+e and f) 
+t = -0.41519; p-value = 0.6794
+Fail to reject H0; there is significant evidence to support the claim that the
+mean of the surface equals the mean of the bottom.
+Question 1 Part g):
+f = 3.230; p = 0.07734
+There is no significant evidence to support the claim that the interaction 
+between the source of the water (organic vs. mineral) and the location (surface 
+vs. bottom) significantly affects the dissolved organic carbon levels.
+
+
+3. Researchers have sought to examine the effect of various types of music on 
+agitation levels in patients who are in the early and middle stages of 
+Alzheimer’s disease. Patients were selected to participate in the study based on 
+their stage of Alzheimer’s disease. Three forms of music were tested: Easy 
+listening, Mozart, and Piano Interludes. While listening to music, agitation 
+levels were recorded for the patients with a high score indicating a higher 
+level of agitation. Scores are recorded below. Use the data to answer the 
+following questions:
+              Piano Interlude, Mozart, Easy Listening
+Early State
+Alzheimer’s,  21,              9,      29
+              24,              12,     26
+              22,              10,     30
+              18,              5,      24
+              20,              9,      26
+Middle State
+Alzheimer’s,  22,              14,     15
+              20,              18,     18
+              25,              11,     20
+              18,              9,      13
+              20,              13,     19
+a) What is the test statistic and p-value for testing the mean score difference 
+between the early state Alzheimers and the middle state Alzheimers?
+b) What do you conclude in the context from the p-value in a)? (Is there any 
+significant mean score difference between the two states?)
+c) What is the test statistic and p-value for testing the mean score difference 
+between the three music types?
+d) What can you conclude from the p-value in c)? (Is there any significant mean 
+score difference between the three types of music?)
+e) Is there a significant interaction between music type and the state of 
+Alzheimer? List the p-value.
+f) If there is a significant interaction between the music type and the state of 
+Alzheimer, separate the data based on the Alzheimer state and answer the 
+following:
+    a. For the Early State Alzheimer’s, what is the test statistic and p-value 
+    to compare the mean scores from the three music types? What can you conclude 
+    from the p-value?
+    b. For the Middle State Alzheimer’s, what is the test statistic and p-value 
+    to compare the mean scores from the three music types? What can you conclude 
+    from that p-value?
+
+Question 3 Code
+```{r Question 3 Code}
+piano_interlude_early <- c(21, 24, 22, 18, 20)
+mozart_early <- c(9, 12, 10, 5, 9)
+easy_listening_early <- c(29, 26, 30, 24, 26)
+
+piano_interlude_middle <- c(22, 20, 25, 18, 20)
+mozart_middle <- c(14, 18, 11, 9, 13)
+easy_listening_middle <- c(15, 18, 20, 13, 19)
+
+early_state <- data.frame(
+  Piano_Interlude = piano_interlude_early,
+  Mozart = mozart_early,
+  Easy_Listening = easy_listening_early
+)
+
+middle_state <- data.frame(
+  Piano_Interlude = piano_interlude_middle,
+  Mozart = mozart_middle,
+  Easy_Listening = easy_listening_middle
+)
+
+# a)
+t.test(piano_interlude_early, piano_interlude_middle, var.equal = FALSE)
+t.test(mozart_early, mozart_middle, var.equal = FALSE)
+t.test(easy_listening_early, easy_listening_middle, var.equal = FALSE)
+
+# b)
+# combine the existing data into one dataset
+combined_scores <- c(piano_interlude_early, mozart_early, easy_listening_early, 
+                     piano_interlude_middle, mozart_middle, easy_listening_middle)
+music_type <- factor(rep(c("Piano_Interlude", "Mozart", "Easy_Listening"), each = 10))
+stage <- rep(c("Early", "Middle"), each = 15)
+# create a data frame for the ANOVA
+anova_data <- data.frame(Score = combined_scores, Music_Type = music_type, Stage = stage)
+
+# c) perform ANOVA
+anova_results <- aov(Score~Music_Type, data = anova_data)
+summary(anova_results)
+
+# e) 
+anova_results_interaction <- aov(Score~Music_Type * Stage, data = anova_data)
+summary(anova_results_interaction)
+
+
+
+```
+a) and b):
+Piano Interlude:
+t = 0.0; p-value = 1.0
+Fail to reject H0; there is no evidence to support the claim that there is a 
+significant mean agitation score difference between the early and middle state 
+Alzheimer's patients when listening to Piano Interlude.
+Mozart:
+t = -2.1082; p-value = 0.07072
+Fail to reject H0; there is no significant evidence to support the claim that 
+there is a significant mean agitation score difference between the early and 
+middle state Alzheimer's patients when listening to Mozart.
+Easy Listening:
+t = 5.8722; p-value = 0.0004172
+Reject H0; there is significant evidence to support the claim that there is a 
+significant mean agitation score difference between the early and middle state 
+Alzheimer's patients when listening to Easy Listening music.
+c) and d):
+f = 10.91; p-value = 0.000336
+Reject H0; there is significant evidence to support the claim that significant 
+mean score differences between the three music types exist.
+e):
+Music_Type p-value = 0.000189
+Stage: p-value = 0.054681
+The interaction term between music type and Alzheimer's stage is not significant.
+
+
+4. Use the “job and gender” data on d2l. Test the main effects of gender, main 
+effects of job category and the interaction between job and gender. Note that 
+this is an unbalanced design.
+a) Perform a two-way ANOVA to test the main effect of gender
+    i) What is the test statistic and p-value for testing the main effect of 
+    gender?
+    ii) What do you conclude? Is there significant mean salary difference 
+    between male and female?
+b) Test the main effect of job category
+    i) What is the test statistic and p-value for testing the main effect of job 
+    category?
+    ii) What do you conclude? Is there significant mean salary difference 
+    between the janitors, clerks, and managers?
+c) If there is a significant interaction, separate the data by job category and 
+answer the following:
+    a. For the janitors, what is the test statistic and p-value for comparing 
+    the mean salary difference between males and females? Is there any 
+    significant difference between the average salary from male janitors and 
+    female janitors?
+    b. For the clerks, what is the test statistic and p-value for comparing the 
+    mean salary difference between males and females? Is there any significant 
+    difference between the average salary from male clerks and female clerks?
+    c. For the managers, what is the test statistic and p-value for comparing 
+    the mean salary difference between males and females? Is there any 
+    significant difference between the average salary from male managers and 
+    female managers?
+
+Question 4 Code
+```{r Question 4 Code}
+job_and_gender <- read_excel("~/Desktop/STAT 301/Week 4/job and gender.xlsx")
+
+# a)
+anova_results <- aov(Salary~Jobcat * Gender, data = job_and_gender)
+summary(anova_results)
+
+# c)
+janitors <- subset(job_and_gender, Jobcat == "janitor")
+clerks <- subset(job_and_gender, Jobcat == "clerk")
+managers <- subset(job_and_gender, Jobcat == "manager")
+
+# Perform t-tests comparing male vs. female salaries
+t_test_janitors <- t.test(Salary~Gender, data = janitors, var.equal = FALSE)
+t_test_clerks <- t.test(Salary~Gender, data = clerks, var.equal = FALSE)
+t_test_managers <- t.test(Salary~Gender, data = managers, var.equal = FALSE)
+t_test_janitors
+t_test_clerks
+t_test_managers
+
+
+```
+a)
+f = 89.23; p-value = 1.62e-11
+There is a significant mean salary difference between male and female.
+b)
+f = 921.51; p-value < 2e-16
+There is a significant mean salary difference between janitors, clerks, and 
+managers.
+c)
+a.
+t = -1.4309; p-value = 0.1812
+There is no significant mean salary difference between male janitors and female 
+janitors.
+b.
+t = -7.2276; p-value = 3.471e-05
+There is a significant mean salary difference between male clerks and female 
+clerks.
+c.
+t = -7.4818; p-value = 2.581e-06
+There is a significant mean salary difference between male managers and female 
+managers.
+
+
+
+

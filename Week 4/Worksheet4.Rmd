@@ -1,0 +1,97 @@
+---
+title: "Worksheet 4"
+author: "Peyton Hall"
+date: "02/07/2025"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Libraries
+```{r Load Libraries}
+library(tidyverse)
+library(readxl)
+```
+
+Interaction Plot
+```{r Interaction Plot}
+detergent <- rep(c("super", "best"), each = 8)
+watertemp <- rep(c("cold", "hot"), each = 4)
+cleanliness <- c(4, 5, 6, 5, 10, 12, 11, 9, 6, 6, 4, 4, 12, 13, 10, 13)
+clothesdf <- data.frame(detergent, watertemp, cleanliness)
+clothesdf # "Always double check your data entry" - Professor Wei
+
+model1 <- aov(cleanliness~detergent+watertemp+detergent*watertemp, data = clothesdf)
+summary(model1)
+interaction.plot(clothesdf$detergent, clothesdf$watertemp, clothesdf$cleanliness, fun = mean)
+```
+Note: 2.1e-07 = 2.1 x 10^-7
+
+$H_0: \text{There is no interaction between Type and Size}$ 
+vs 
+$H_a: \text{There is a significant interaction between Type and Size}$
+Car Interaction Plot
+```{r Car Interaction Plot}
+Car_filter <- read_excel("~/Desktop/STAT 301/Week 4/Car filter.xlsx")
+model2 <- aov(Noise~Size+Type+Size*Type, data=Car_filter)
+summary(model2)
+interaction.plot(Car_filter$Type, Car_filter$Type, Car_filter$Noise)
+```
+f = 30.42; p-value = 0
+Reject H0; There is a significant interaction between Type and Size.
+
+standardfilter
+```{r standardfilter}
+standardfilter <- Car_filter %>%
+  filter(Type == "standard")
+# standardfilter
+```
+
+octelfilter
+```{r octelfilter}
+octelfilter <- Car_filter %>%
+  filter(Type == "octel")
+# octelfilter
+```
+
+Test Noise by Size
+```{r Test Noise by Size}
+t.test(Noise~Size, data = standardfilter, alternative = "two.sided")
+```
+t = -2.5359; p-value = 0.04434
+Reject H0; There is significant difference between medium and large among the 
+standard filters.
+
+$H_0: \mu_{med} = \mu_{large}$ 
+Test Noise by Size Again
+```{r Test Noise by Size Again}
+t.test(Noise~Size, data = octelfilter, alternative = "two.sided")
+```
+t = 13.624; p-value = 5.366e-06
+Reject H0; there is sig. diff. bt. medium and large among the octel filters
+
+1. A clinician would like to study the effects of two different drugs (drug A 
+and drug B) on systolic blood pressure (SBP) for patients. He would also like to 
+consider the effects of gender on systolic blood pressure. He randomly chosen 4 
+females and assigned with drug A, 4 females with drug B, 4 males with drug A and 
+4 males with drug B. He measured the SBP after each patient taking the
+medication. Assuming all of the patients had similar baseline SBP. Test the main 
+effects of drug and gender, and the interaction between drug and gender
+$H_0: \text{There is no significant difference between drug A and B}$
+$H_0: \text{There is no significant difference between males and females}$
+Drug Types
+```{r Drug Types}
+gender1 <- rep(c("Female", "Male"), each = 8)
+drug <- rep(c("A", "B"), each = 4) # 4 A's and 4 B's
+SBP <- c(120, 110, 100, 105, 99, 101, 102, 98, 100, 101, 100, 101, 121, 119, 103, 121)
+BPdf <- data.frame(gender1, drug, SBP)
+# BPdf
+
+model3 <- aov(SBP~gender1+drug+gender1*drug, data = BPdf)
+summary(model3)
+
+```
