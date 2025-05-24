@@ -1,0 +1,96 @@
+---
+title: "Worksheet2"
+author: "Peyton Hall"
+date: "01/24/2025"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Necessary Libraries
+```{r Load Necessary Libraries}
+library(readxl)
+library(tidyverse)
+```
+
+$H_0: μ = 80$ vs $H_a: μ < 80$
+In Class Coding One Sample T Test
+```{r In Class Coding One Sample T Test}
+Reading <- read_excel("~/Desktop/STAT 301/Week 2/Reading.xlsx")
+t.test(Reading$read, mu = 80, alternative = "less")
+```
+t = -3.87, p-value = 0.0003 
+Reject H0; There is evidence to support that the mean reading score from Prof.
+White’s students is significantly lower than 80
+
+$H_0: μ = 0.5$ vs $H_a: μ > 0.5$
+Worksheet 2 Question 2
+```{r Worksheet 2 Question 2}
+Mehr_Song_and_Spelke <- read_excel("~/Desktop/STAT 301/Week 2/Mehr Song and Spelke.xlsx")
+
+M1 <- Mehr_Song_and_Spelke %>%
+  filter(exp1 == 1)
+
+t.test(M1$Baseline_Proportion_Gaze_to_Singer, mu = 0.5, alternative = "greater")
+```
+t = 0.67; p-value = 0.25
+Fail to reject H0; There is no evidence to support that the average proportion 
+of infants looking for the singer was higher than 0.5.
+
+$H_0: μ(drug) = μ(placebo)$ vs $H_a: μ(drug) > μ(placebo)$
+In Class Coding Slide 11
+```{r In Class Coding Slide 11}
+drugtype <- rep(c("drug", "placebo"), c(10,12))
+
+birthwt <- c(6.9, 7.6, 7.3, 7.6, 6.8, 7.2, 8.0, 5.5, 5.8, 7.3,
+             6.4, 6.7, 5.4, 7, 5.3, 6.6, 5.8, 5.7, 6.2, 7.1, 5.6, 4.2)
+babydf <- data.frame(drugtype, birthwt)
+babydf
+```
+
+```{r}
+library(ggplot2)
+newdf <- babydf %>%
+  group_by(drugtype) %>%
+  summarize(ave = mean(birthwt), ste = sd(birthwt)/sqrt(length(birthwt)),
+            tstar = qt(1-0.05/2, length(birthwt) - 1))
+ggplot(data = newdf, aes(x = drugtype, y = ave) )+ geom_point() + geom_errorbar(aes(ymin = ave - tstar * ste, ymax = ave + tstar * ste)) + ylim(c(0,8))
+```
+
+$H_0: μ(drug) = μ(placebo)$ vs $H_a: μ(drug) > μ(placebo)$
+In Class Coding Slide 11 T Test
+```{r In Class Coding Slide 11 T Test}
+# syntax implies μ(drug) > μ(placebo)
+t.test(birthwt~drugtype, data = babydf, alternative = "greater")
+```
+t = 2.87; p-value = 0.0047
+Reject H0; there is evidence to support that the average baby weight from the 
+drug group is significantly higher than the average baby weight from the placebo 
+group
+
+```{r}
+airline <- rep(c("delta", "sun"), each = 9)
+
+fuel <- c(82.1, 68.4, 52.7, 58.8, 52, 71.4, 60, 59.6, 44.9,
+          60.8, 68.3, 77.2, 76.4, 71.4, 63, 81.1, 72.1, 73.3)
+airdf <- data.frame(airline, fuel) 
+```
+
+```{r}
+airdf %>%
+  group_by(airline) %>%
+  summarize(ave = mean(fuel), ste = sd(fuel)/sqrt(length(fuel)), tstar = qt(1-0.05/2, length(fuel)-1)) %>%
+  ggplot(aes(x=airline, y= ave)) + geom_point() + geom_errorbar(aes(ymin=ave - tstar*ste, ymax=ave+tstar*ste))
+```
+
+```{r}
+t.test(fuel~airline, data=airdf, alternative = "two.sided")
+```
+Reject H_0
+There is evidence to support that the ave. fuel efficiency differs sig. between 
+2 airlines
