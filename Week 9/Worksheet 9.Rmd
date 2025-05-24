@@ -1,0 +1,54 @@
+---
+title: "Worksheet 9"
+author: "Peyton Hall"
+date: "03/28/2025"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Libraries
+```{r Load Libraries}
+library(tidyverse)
+library(ggplot2)
+# install.packages("plotly")
+library(plotly)
+# install.packages("GGally")
+library(GGally)
+# install.packages("factoextra")
+library(factoextra)
+library(readxl)
+```
+
+Read the Data
+```{r Read the Data}
+USairpollution <- read_excel("~/Desktop/STAT 301/Week 9/USairpollution.xlsx")
+USairpollution
+```
+
+Question 1 Code
+```{r Question 1 Code}
+plot_ly(data = USairpollution, x = ~Temp, y = ~Wind, z = ~Precipitation)
+ggpairs(data = USairpollution, columns = c(3,6,7))
+```
+
+Read Additional Data
+```{r Read Additional Data}
+SalmonData <- read_excel("~/Desktop/STAT 301/Week 9/SalmonData.xlsx")
+SalmonData
+```
+
+Question 2 Code
+```{r Question 2 Code}
+model2 <- prcomp(~Winter+Spring+Fall, data = SalmonData, scale = TRUE)
+result2 <- summary(model2)
+result2$center
+result2$importance
+result2$rotation
+```
+
