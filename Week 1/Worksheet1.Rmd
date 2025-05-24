@@ -1,0 +1,106 @@
+---
+title: "STAT 301 Worksheet 1"
+author: "Peyton Hall"
+date: "2025-01-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# install.packages("tidyverse")
+library(tidyverse)
+```
+
+```{r Coding In Class Chunk 1}
+finalscores <- c(90,78,92,69,85,88,83,96,72,99)
+finalscores
+mean(finalscores)
+median(finalscores)
+sd(finalscores)
+min(finalscores)
+max(finalscores)
+sum(finalscores)
+```
+
+```{r Coding In Class Chunk 2}
+# display a summary of the finalscores vector
+summary(finalscores)
+```
+
+```{r Coding In Class Chunk 3}
+# create a data frame with three variables
+
+Name <- c("John", "Kate", "Tom", "Cindy", "Jack", "Hana")
+title <- c("Manager", "Prof", "Prof", "Manager", "Prof", "Manager")
+Salary <- c(70000, 55000, 60000, 80000, 50000, 90000)
+
+salarydf <- data.frame(Name, title, Salary)
+salarydf
+```
+
+```{r Coding In Class Chunk 4}
+# filter the data frame for managers only
+managerdf <- salarydf %>%
+  filter(title == "Manager")
+
+managerdf
+```
+
+```{r Coding In Class Chunk 5}
+# generate a bar graph of average salaries by title
+salarydf %>%
+  group_by(title) %>%
+  summarize(avgSal = mean(Salary)) %>%
+  ggplot(aes(x=title, y=avgSal)) + geom_bar(stat = "identity")
+  
+```
+
+
+
+```{r Coding In Class Chunk 6}
+# install.packages("tidyverse")
+library(tidyverse)
+
+# select only title and Salary columns from salarydf
+newsalarydf <- salarydf %>%
+  select(title, Salary)
+
+newsalarydf
+```
+
+
+```{r Worksheet 1 Question 1 Part a}
+# create a data frame for the activity
+# a) Create data frame
+Name1 <- c("John", "Peter", "Jolie", "Jason", "Leslie", "Donna")
+gender <- c("Male", "Male", "Female", "Male", "Female", "Female")
+Salary1 <- c(21000, 23000, 25000, 30000, 20000, 35000)
+Starting_Date <- c("2010-11-01", "2008-12-15", "2007-12-01", "2001-10-10", "2009-01-10", "2001-05-01")
+
+chef <- data.frame(Name1, gender, Salary1, Starting_Date)
+chef
+
+```
+
+```{r Worksheet 1 Question 1 Part b}
+# b) Use chef data
+newchef <- chef %>%
+  select(gender, Salary1, Starting_Date)
+newchef
+```
+
+```{r Worksheet 1 Question 1 Part c}
+# c) Keep females only
+femalesdf <- chef %>%
+  filter(gender == "Female")
+femalesdf
+```
+
+```{r Worksheet 1 Question 1 Part d}
+# d) Create new column
+chef %>%
+  group_by(gender) %>%
+  summarize(avgSal = mean(Salary1), sdSalary = sd(Salary1))
+```
