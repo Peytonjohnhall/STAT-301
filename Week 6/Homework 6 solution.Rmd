@@ -1,0 +1,87 @@
+---
+title: "Homework 6 solution"
+author: Professor Wei Wei
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Question 1
+library(tidyverse)
+library(ggplot2)
+library(nlme)
+library(multcomp)
+Subjects<-c(1:5, 1:5,1:5,6:10,6:10,6:10)
+Drug<-rep(c("A","B"), each = 15)
+Timing<-rep(c("RightAfter","OneYear","FiveYear"), each=5)
+ODX<-c(22, 16,23,25,26,20,12,11,14,18,15,10,10,12,16,25,20,35,39,27,21,18,27,35,27,21,19,26,36,25)
+cancerdata<-data.frame(Subjects, Drug, Timing, ODX)
+
+model1<-lme(ODX~Drug+Timing+Drug*Timing, random= ~ 1+Timing|Subjects, data=cancerdata)
+anova(model1)
+
+c1<-cancerdata%>%
+  filter(Timing=="RightAfter")
+t.test(ODX~Drug, data=c1)
+
+c2<-cancerdata%>%
+  filter(Timing=="OneYear")
+t.test(ODX~Drug, data=c2)
+
+c3<-cancerdata%>%
+  filter(Timing=="FiveYear")
+t.test(ODX~Drug, data=c3)
+```
+
+```{r}
+#Question 2
+library(tidyverse)
+library(ggplot2)
+library(nlme)
+Individual<-c(1:5, 1:5, 6:10, 6:10)
+Dosage<-rep(c("Low","High"), each=5)
+Drug2<-rep(c("A","B"), each=10)
+painscore<-c(52,61,59,37,49,50,58,51,34,41,43,32,21,29,26,33,30,20,21,22)
+paindf<-data.frame(Individual,Dosage, Drug2, painscore)
+
+model2<-lme(painscore~Dosage+Drug2+Dosage*Drug2, random= ~ 1+Dosage|Individual, data=paindf)
+anova(model2)
+```
+
+```{r}
+#Question 3
+library(tidyverse)
+library(nlme)
+templevel<-rep(c("Med","High"), each = 8)
+cookingT<-rep(c("Short","Long"), each = 4)
+taste<-c(62,59,41,33,32,31,45,67,82,96,95,90,89,76,88,82)
+mytaste<-data.frame(templevel, cookingT, taste)
+model3<-aov(taste~templevel+cookingT+templevel*cookingT, data=mytaste)
+summary(model3)
+```
+
+
+```{r}
+#Question 4
+library(tidyverse)
+library(nlme)
+
+students<-1:8
+pedagogy<-rep(c("A","B"), each=16)
+monthlabel<-rep(c("m1","m2"), each=8)
+performance<-c(67,71,72,79,77,65,63,62,66,73,75,77,75,72,60,61,82,83,88,89,91,90,95,97,88,86,84,82,90,89,88,93)
+mystu<-data.frame(students, pedagogy, monthlabel, performance)
+modelstu<-lme(performance~pedagogy+monthlabel+pedagogy*monthlabel, random = ~1|students, data= mystu)
+anova(modelstu)
+```
+
+```{r}
+#Question 5
+# kruskal.test(Productivity~Music, data=EmployeeMusic)
+```
+

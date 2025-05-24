@@ -1,0 +1,330 @@
+---
+title: "Homework 6"
+author: "Peyton Hall"
+date: "02/26/2025"
+output:
+  pdf_document:
+    latex_engine: lualatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Load Libraries
+```{r}
+library(nlme)
+library(tidyr)
+library(multcomp) # for glht
+```
+
+
+1. A researcher would like to test the effects of two drugs (A and B) on 
+treating Breast cancer. The researcher recruited 10 patients and assigned drug A 
+randomly to 5 of them and drug B to the other 5. The researcher measured the 
+Oncotype DX score to those 10 patients at three times: Immediately after taking 
+the drugs, 1 year after the drugs, and 5 years after. The Oncotype DX score of 
+15 or below means that no or low recurrence risk, the score of 21-25 means a 
+medium risk of recurrence, and the score of 26-100 means a high risk of 
+recurrence. Use the 0.05 significance level to test if there is a significant 
+mean score difference between drug A and B, and if there is a significant mean 
+score difference between the three times, and if there is a significant 
+interaction between drug and time.
+Drug, Subject, RightAfter, OneYear, FiveYear
+      1,       22,         20,      15
+      2,       16,         12,      10
+A     3,       23,         11,      10
+      4,       25,         14,      12
+      5,       26,         18,      16
+      6,       25,         21,      21
+      7,       20,         18,      19
+B     8,       35,         27,      26
+      9,       39,         35,      36
+      10,      27,         27,      25
+
+Question 1 Code
+```{r Question 1 Code}
+Drug1 <- c(rep("A", 5), rep("B", 5))
+Subject <- 1:10
+RightAfter <- c(22, 16, 23, 25, 26, 25, 20, 35, 39, 27)
+OneYear <- c(20, 12, 11, 14, 18, 21, 18, 27, 35, 27)
+FiveYear <- c(15, 10, 10, 12, 16, 21, 19, 26, 36, 25)
+question_one_data <- data.frame(Drug1, Subject, RightAfter, OneYear, FiveYear)
+question_one_data
+
+# c) use lme (linear mixed effects) and anova()
+library(nlme)
+library(tidyr)
+long_data <- pivot_longer(question_one_data, cols = c("RightAfter", "OneYear", "FiveYear"), 
+                          names_to = "Time", values_to = "Score")
+# convert Time to a factor to avoid error in glht fucntion
+long_data$Time <- factor(long_data$Time, levels = c("RightAfter", "OneYear", "FiveYear"))
+# Convert Drug1 to a factor in the long_data DataFrame
+long_data$Drug1 <- factor(long_data$Drug1)
+# fit linear mixed-effects model using nlme
+model1 <- lme(Score~Drug1+Time+Drug1*Time, random=~1+Time|Subject, data= long_data)
+anova(model1)
+
+# i)
+right_after_data <- long_data[long_data$Time == "RightAfter",]
+one_year_data <- long_data[long_data$Time == "OneYear",]
+five_year_data <- long_data[long_data$Time == "FiveYear",]
+posthoc_rightafter <- lme(Score~Drug1, random =~1|Subject, data = right_after_data)
+posthoc_oneyear <- lme(Score~Drug1, random =~1|Subject, data = one_year_data)
+posthoc_fiveyear <- lme(Score~Drug1, random =~1|Subject, data = five_year_data)
+posthoc_rightafter<-glht(posthoc_rightafter, linfct = mcp (Drug1 ="Tukey"))
+posthoc_oneyear<-glht(posthoc_oneyear, linfct = mcp (Drug1 ="Tukey"))
+posthoc_fiveyear<-glht(posthoc_fiveyear, linfct = mcp (Drug1 ="Tukey"))
+summary(posthoc_rightafter)
+summary(posthoc_oneyear)
+summary(posthoc_fiveyear)
+
+```
+
+a) What type of design is this?
+two-way mixed repeated measure
+b) Formulate the null and alternative hypotheses for testing the main effect of 
+drug using symbols.
+$H_0: \mu_\text{score drug A} = \mu_\text{score drug B}$ vs $H_a: \mu_\text{score drug A} ≠ \mu_\text{score drug B}$
+c) What is the F statistic and p-value testing the main effect of drug?
+f = 20.13944; p-value = 0.0020
+d) What conclusion can you make based on the p-value in b)?
+Reject H0; there is evidence to support the claim that there is a significant 
+mean score difference between drug A and B.
+e) Formulate the null and alternative hypotheses for testing the main effect of 
+time using symbols.
+$H_0: \mu_\text{Right After} = \mu_\text{One Year} = \mu_\text{Five Year}$ vs $H_a: \text{At least one mean differs}$
+f) What is the F statistic and p-value for testing the main effect of time?
+f = 31.34159; p-value <.0001
+Reject H0; there is evidence to support the claim that there is a significant 
+mean score difference between the three times.
+g) What conclusion can you make about whether there is a significant mean score 
+difference between the three times?
+Due to the low p-value of <.0001, there is a significant mean score difference 
+between the three times.
+h) Is there a significant interaction between time and drug? What is the p-value 
+for that?
+There is a significant interaction between time and drug. The p-value is 0.0024.
+i) If there is a significant interaction, we need to separate the data file. 
+Please separate the data by timing:
+  a. For the timing of Right After, is there a significant mean score difference 
+  between drug A and B? What is that p-value?
+  p-value = 0.0781. i.e. > 0.05, so there is no significant mean score 
+  difference between Drug A and Drug B immediately after administration.
+  b. For the timing of One year after, is there a significant mean score 
+  difference between drug A and B? What is that p-value?
+  p-value = 0.00182. i.e. < 0.05, so there is a significant mean score 
+  difference between Drug A and Drug B one year after administration.
+  c. For the timing of Five year After, is there a significant mean score 
+  difference between drug A and B? What is that p-value?
+  p-value = 6.23e-05 (0.0000623). i.e. < 0.05, so there is a significant mean 
+  score difference between Drug A and Drug B five years after administration.
+
+
+
+
+2. A physician would like to see if different doses of two drugs A and B have 
+significantly different effect on reducing headache. The physician recruited 10 
+patients and randomly assigned drug A to 5 of them and B to the other five. The 
+physician prescribed one pill for the low dose and two pills for the high dose 
+and asked the patients to take the low dose first and measured their pain scores 
+after, and then to take the high dose and measured their pain scores after. The 
+higher score, the more pain. Use the 0.05 significance level to test if there is 
+the pain scale is significantly different between drug A and B, between the high 
+and low doses, and if there is a significant interaction between the type of 
+drug and the dose.
+    Individuals, LowDose, HighDose
+    1,           52,      50
+    2,           61,      58
+A   3,           59,      51
+    4,           37,      34
+    5,           49,      41
+    6,           43,      33
+    7,           32,      30
+B   8,           21,      20
+    9,           29,      21
+    10,          26,      22
+    
+$H_0: \mu_{\text{Pain Drug A}} = \mu_{\text{Pain Drug B}}$ vs $H_a: \mu_{\text{Pain Drug A}} \neq \mu_{\text{Pain Drug B}}$
+$H_0: \mu_{\text{High Dose}} = \mu_{\text{Low Dose}}$ vs $H_a: \mu_{\text{High Dose}} \neq \mu_{\text{Low Dose}}$
+Question 2 Code
+```{r Question 2 Code}
+Drug2 <- c(rep("A", 5), rep("B", 5))
+Individuals <- 1:10
+LowDose <- c(52, 61, 59, 37, 49, 43, 32, 21, 29, 26)
+HighDose <- c(50, 58, 51, 34, 41, 33, 30, 20, 21, 22)
+question_two_data <- data.frame(Drug2, Individuals, LowDose, HighDose)
+question_two_data
+
+# b) use lme and anova()
+# reshape data to long format to model dose effects separately
+question_two_long <- reshape(question_two_data, varying = list(c("LowDose", "HighDose")),
+                             v.names = "PainScore", times = c("Low", "High"), 
+                             timevar = "Dose", direction = "long", new.row.names = 1:20)
+# DV = PainScore; IV = Drug2 and Dose
+model2<-lme(PainScore~Drug2+Dose+Drug2*Dose, random=~1+Dose|Individuals, data= question_two_long)
+anova(model2)
+
+```
+
+a) What type of design is this?
+two-way mixed repeated measure
+b) What is the F statistic and p-value for comparing the drug A and B?
+f = 19.40837; p-value = 0.0023
+c) What conclusion can you make based on the p-value in a)?
+Reject H0; there is evidence to support the claim that the pain scale is 
+significantly different between drug A and B.
+d) What is the F statistic and p-value for comparing the high and low dosage?
+f = 20.26169; p-value = 0.0020
+e) What conclusion can you make based on the p-value in c)?
+Reject H0; there is evidence to support the claim that the pain scale is 
+significantly different between the high and low doses.
+f) What is the F statistic and p-value for the interaction? Is there a 
+significant interaction?
+f = 0.00844; p-value = 0.9291
+There is no significant interaction between the type of drug and the dose.
+
+
+
+
+3. Food scientists would like to test the difference of pasta’s taste while 
+cooking under different temperature and different cooking time. They designed 
+the experiment to cook 16 plates of pasta, with 4 under high temperature and 
+long cooking time, 4 under high temperature and short cooking time, 4 under 
+medium temperature and long cooking time, and 4 under medium temperature and 
+short cooking time. At the end of the experiment, they measured the taste scores 
+of the 16 plates of pasta. The higher score, the better pasta. Use the 0.05 
+significance level to compare if there is a significant difference cooking under 
+the two temperature levels, and with the two different time, and if there is a 
+significant interaction between temperature and time. The data of taste scores 
+is here:
+                    MedTemp,     HighTemp
+Short Cooking Time, 62,59,41,33, 82,96,95,90
+Long Cooking Time,  32,31,45,67, 89,76,88,82
+
+Question 3 Code
+```{r Question 3 Code}
+Time <- rep(c("Short Cooking Time", "Long Cooking Time"), each = 8)
+Temperature <- rep(c("MedTemp", "HighTemp"), each = 4)
+Scores <- c(62, 59, 41, 33, 82, 96, 95, 90, 32, 31, 45, 67, 89, 76, 88, 82)
+data3 <- data.frame(Time, Temperature, Scores)
+data3
+
+# c) use aov() function due to it being two-way ANOVA
+# DV = taste scores
+model3 <- aov(Scores~Time+Temperature+Time*Temperature, data = data3)
+summary(model3)
+```
+
+a) What type of design is this? (Note this was from one of our previous class)
+two-way ANOVA
+b) Formulate the null and alternative hypotheses for comparing the mean scores 
+between the short and long cooking time
+$H_0: \mu_\text{Short Term} = \mu_\text{Long Term}$ vs $H_a: \mu_\text{Short Term} ≠ \mu_\text{Long Term}$
+c) What is the test statistic and p-value for a)?
+f = 1.039; p-value = 0.328
+d) What conclusion can you draw based on the p-value in b)?
+Fail to reject H0; there is no evidence to support the claim that there is a 
+significant difference in cooking under the two different times.
+e) What is the test statistic and p-value for comparing the mean scores between 
+the medium and high temperature levels?
+f = 48.520; p-value = 1.51e-05 (i.e. 0.0000151)
+f) What conclusion can you draw based on the p-value in d)?
+There is evidence to support the claim that there is a significant difference 
+cooking under the two temperature levels.
+g) Is there a significant interaction between cooking time and temperature? What 
+is the p-value?
+There is no significant interaction between cooking time and temperature because
+the p-value of 0.868 is greater than the significance level.
+
+
+
+
+4. The researcher would like to know the effects of pedagogy A and B on 
+improving students’ performance in reading. He recruited 8 students. He trained 
+all 8 students with A and measured their performance in month 1 and then month 
+2. He then trained all of them with B and measured their performance in a 
+different test in month 1 and the month 2. The data is below. Use the 0.05 
+significance level to test the main effect of pedagogy and main effect of time, 
+and the interaction.
+Students, Pedagogy A,       Pedagogy B
+          Month 1, Month 2, Month 1, Month 2
+1,        67,      66,      82,      88
+2,        71,      73,      83,      86
+3,        72,      75,      88,      84
+4,        79,      77,      89,      82
+5,        77,      75,      91,      90
+6,        65,      72,      90,      89
+7,        63,      60,      95,      88
+8,        62,      61,      97,      93
+
+Question 4 Code
+```{r Question 4 Code}
+Students <- 1:8
+Pedagogy<-rep(c("Pedagogy A","Pedagogy B"), each =16) # total data points
+Pedagogy<-as.factor(Pedagogy)
+month<-rep(c("Month 1","Month 2"),each=8) # number of observations in column
+Performance<-c(67,71,72,79,77,65,63,62, 66,73,75,77,75,72,60,61,
+               82,83,88,89,91,90,95,97, 88,86,84,82,90,89,88,93)
+myperformance<-data.frame(Students,Pedagogy,month,Performance)
+myperformance
+  
+# b) 
+model4<-lme(Performance~Pedagogy+month+Pedagogy:month, random = ~ 1|Students, data=myperformance)
+anova(model4)
+
+```
+
+a) What is the design?
+two-way fixed repeated measure
+b) What is the test statistic and p-value for comparing the pedagogies?
+c) What conclusion can you make with the p value in b)?
+f = 91.278; p-value = <.0001
+Reject H0; there is evidence to support the claim that the mean performances 
+between pedagogy a and pedagogy b differ.
+d) What is the test statistic and p-value for comparing the timing?
+f = 0.146; p-value = 0.7062
+e) What conclusion can you make with the p-value in d)?
+Fail to reject H0; there is not enough evidence to support the claim that 
+month 1 and month 2 performances differ.
+f) What is the p-value for testing the interaction? Is the interaction 
+significant?
+p-value = 0.5726
+There is not enough evidence to support the claim that there is a significant 
+interaction.
+
+
+
+
+5. An online retailer wants to get the best from its employees, as well as 
+improving their working experience. Currently, employees in the retailer’s order 
+fulfilment center are not provided with any kind of entertainment whilst they 
+work (e.g., no background music). However, the retailer wants to know whether 
+providing music, which a few employees have requested, would lead to greater 
+productivity. He recruited a sample of 15 volunteers and split them into three 
+treatment groups: a) a control group that didn’t listen to music; b) a treatment 
+group who listened to music but had no choice of what they listened to; and c) a 
+second treatment group who listened to music and had a choice of what they 
+listened to. The data of their productivities is provided on D2L. The data is 
+not normally distributed. Use the 0.05 significance level to test that if there 
+is any significant difference in their productivities among the three groups.
+
+Question 5 Code
+```{r Question 5 Code}
+library(readxl)
+EmployeeMusic <- read_excel("~/Desktop/STAT 301/Week 6/EmployeeMusic.xlsx")
+
+# DV = Productivity, IV = Music
+kruskal.test(Productivity~Music, data = EmployeeMusic)
+```
+
+Step 1: State the null and alternative hypotheses in symbols
+$H_0: \eta_\text{ProductivityA} = \eta_\text{ProductivityB} = \eta_\text{ProductivityC}$ vs $H_a: \text{At least two medians are different}$
+Step 2: Choose Kruskal-Wallis rank sum test
+Step 3: What is the test statistic and p-value from R?
+chi-squared = 0.093644; p-value = 0.9543
+Step 4: State your decision to H0 and explain the decision in the context
+Fail to reject H0; there is not enough evidence to support the claim that 
+productivities among the three groups are not equivalent.
+

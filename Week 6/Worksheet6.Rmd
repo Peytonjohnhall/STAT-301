@@ -1,0 +1,113 @@
+---
+title: "Worksheet 6"
+author: "Peyton Hall"
+date: "02/21/2025"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(nlme)
+library(multcomp)
+```
+
+Activity 1
+We would like to study the effect of pizza consumption and the timing of
+eating pizza on mood. The study recruited 16 volunteers, and randomly
+assigned 8 of them to eat Pop Johns’ Pizza, and the other 8 eat Domino’s Pizza.
+All 16 volunteers had Pizza for both breakfast and dinner. The researchers
+recorded their mood scores 3 hours after they had Pizza. The data is on the
+worksheet.
+Perform an appropriate analysis to test the main effect of the type of Pizza, the
+main effect of timing, and the interaction between type of Pizza and timing
+
+Individual, Type of Pizza, After Breakfast, After dinner
+1           Pop John's,    52,              77
+2                          59,              69
+3                          66,              68
+4                          43,              71
+5           Dominos,       55,              82
+6                          61,              69
+7                          62,              80
+8                          39,              59
+
+```{r}
+individuals <- 1:8
+pizza <- rep(c("Pop Johns", "Dominos"), each = 4)
+meals <- rep(c("After breakfast", "After dinner"), each = 8)
+moodscore <- c(52,59,66,43, 55,61,62,39, 77,69,68,71, 82,69,80,59)
+mydf <- data.frame(individuals, pizza, meals, moodscore)
+model2 <- lme(moodscore~pizza+meals+pizza*meals, random = ~1+meals|individuals, data=mydf)
+anova(model2)
+```
+
+a) What are the f statistic and p-value for testing the main effect of type of
+Pizza?
+f = 0.0142; p-value = 0.9089
+
+b) What conclusion can you make about the main effect of Pizza?
+$H_0: \mu_{PJ} = \mu_{D}$ vs $H_a: \mu_{PJ} ≠ \mu_{D}$
+Fail to reject H0; there is no significant difference in mood score between Pop
+John's and Dominos pizza.
+
+c) What are the F statistic and p-value for testing the main effect of 
+timing/meal?
+f = 22.2650; p-value = 0.0033
+
+d) What conclusion can you make about the main effect of timing/meal?
+$H_0: \mu_{AB} = \mu_{AD}$ vs $H_a: \mu_{AB} ≠ \mu_{AD}$
+Reject H0; there is significant mood score difference between breakfast and
+dinner
+
+e) What is the p-value for the interaction term?
+p-value = 0.7936
+Fail to reject H0; there is no significant interaction between pizza and meal.
+
+
+2. Does physical exercise alleviate depression? We find some depressed people
+and check that they are all equivalently depressed to begin with. Then we
+allocate each person randomly to one of the three groups: no exercise; 20
+minutes of jogging per day; or 60 minutes of jogging per day. At the end of a
+month, we ask each participant to rate how depressed they feel on a Likert
+scale from 1 (totally miserable) through 100 (ecstatically happy). Here is the
+data. Use 0.05 significance level to test the claim that the depression level
+(score) are significantly different between the three exercise groups.
+No exercise, 23, 26, 32, 37, 29
+20-min exercise, 22, 27, 39, 35, 46
+60-min exercise, 59, 66, 38, 49, 56
+
+```{r}
+exercise <- rep(c("No exercise", "20-min exercise", "60-min exercise"), each = 5)
+depscore <- c(23, 26, 32, 37, 29, 22, 27, 39, 35, 46, 59, 66, 38, 49, 56)
+depdf <- data.frame(exercise, depscore)
+kruskal.test(depscore~exercise, data = depdf)
+pairwise.wilcox.test(depscore, exercise, p.adj="none")
+```
+
+
+Step 1: State the null and alternative hypotheses
+$H_0: \text{μ Depression no exercise = μ Depression twenty min = μ Depression sixty min}$ vs $H_a: \text{At least two μ are different}$
+
+Step 2: What test would you choose?
+Kruskal-Wallis rank sum test
+
+Step 3: What is the test statistic and p-value?
+t = 8.34; p-value = 0.01545
+
+Step 4: What is your decision?
+Reject H0; there is a sig. diff. bt. at least 2 types of exercises.
+
+Step 5: What can you conclude from post-hoc (follow up) test?
+The significant difference is 
+bt. 20 min and 60 min
+bt. none and 60 min
+
+
+
+
