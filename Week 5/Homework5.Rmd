@@ -1,0 +1,301 @@
+---
+title: "Homework 5"
+author: "Peyton Hall"
+date: "02/19/2025"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(nlme)
+library(multcomp)
+```
+
+
+1. A researcher has randomly selected a sample of 8 adults to participate in a 
+memory study. Each adult is administered a treatment and then given a memory 
+test. The memory test scores are standardized. A higher score indicates a better 
+memory score. The data is shown below. Use the 0.05 significance level to test 
+that there is a significant mean difference between the test scores of taking 
+the three treatments, by answering the following questions.
+Subject, Control, DrugA, DrugB
+1,       5,       9,     6
+2,       4,       9,     4
+3,       5,       10,    7
+4,       6,       11,    9
+5,       7,       12,    10
+6,       3,       10,    3
+7,       4,       8,     5
+8,       5,       9,     4
+a) Formulate the null and alternative hypotheses to test the differences of the 
+treatments.
+$H_0: μ_\text{Control} = μ_\text{DrugA} = μ_\text{DrugB}$ vs $H_a: \text{At least one μ differs}$
+b) What are the F statistic and the p-value? What do you conclude based on the 
+significance level of 0.05?
+c) If there is a significant difference between treatments, which two are 
+significantly different?
+
+1
+```{r 1}
+control <- c(5, 4, 5, 6, 7, 3, 4, 5)
+drugA <- c(9, 9, 10, 11, 12, 10, 8, 9)
+drugB <- c(6, 4, 7, 9, 10, 3, 5, 4)
+
+data1 <- data.frame(
+  Subject = rep(1:8, 3),
+  Score = c(control, drugA, drugB),
+  Treatment = factor(rep(c("Control", "DrugA", "DrugB"), each = 8))
+)
+
+# use lme due to one way repeated measure 
+result1 <- lme(Score~Treatment, random = ~1 | Subject, data = data1)
+anova(result1)
+
+# c)
+data1$Subject <- as.factor(data1$Subject)
+posthoc1<-glht(result1, linfct=mcp(Treatment="Tukey"))
+summary(posthoc1)
+
+```
+b)
+f = 50.6185; p-value = <.0001
+Reject H0; there is evidence to support the claim that there is a significant 
+mean difference between the test scores of taking the three treatments.
+c)
+There is a sig. diff. bt. DrugA-Control due to the low p-value.
+There is a sig. diff. bt. DrugB-DrugA due to the low p-value.
+
+
+2. A therapist interested in helping individuals with Ophidiophobia. In order to 
+do this, the therapist is going to slowly desensitize the patients to snakes. He 
+needs to find a starting point, so he presented a sample of 8 ophidiophobics 
+with snake related stimuli and measured their physiologic responses (1-20). Use 
+the 0.05 significance level to test the claim that there is a significant mean 
+physiologic score difference reacting to the three different stimuli.
+Subjects, Picture of a snake, Plastic toy snake, Rubber toy snake
+1,        7,                  12,                14
+2,        5,                  8,                 13
+3,        3,                  10,                12
+4,        8,                  12,                14
+5,        2,                  7,                 12
+6,        4,                  4,                 10
+7,        3,                  16,                8
+8,        4,                  9,                 13
+a) What are the null and alternative hypotheses
+$H_0: μ_\text{Picture} = μ_\text{Plastic} = μ_\text{Rubber}$ vs $H_a: \text{At least one μ differs}$
+b) What are the test statistic and p-value?
+c) What decision can you make in the context?
+d) If there is a significant difference, which two?
+
+2
+```{r 2}
+picture <- c(7, 5, 3, 8, 2, 4, 3, 4)
+plastic <- c(12, 8, 10, 12, 7, 4, 16, 9)
+rubber <- c(14, 13, 12, 14, 12, 10, 8, 13)
+
+data2 <- data.frame(
+  Subject = rep(1:8, 3),
+  Score = c(picture, plastic, rubber),
+  Treatment = factor(rep(c("Picture", "Plastic", "Rubber"), each = 8))
+)
+
+# use lme due to one way repeated measure 
+result2 <- lme(Score~Treatment, random = ~1 | Subject, data = data2)
+anova(result2)
+
+# d)
+data2$Subject <- as.factor(data2$Subject)
+posthoc2<-glht(result2, linfct=mcp(Treatment="Tukey")) # pairwise comparison
+summary(posthoc2)
+
+```
+b) - c)
+t = 19.36576; p-value = 1e-04 (.0001)
+Reject H0; there is evidence to support the claim that there is a significant 
+mean physiologic score difference reacting to the three different stimuli.
+d)
+There is a sig. diff. bt. Plastic-Picture due to the low p-value.
+There is a sig. diff. bt. Rubber-Picture due to the low p-value.
+
+
+3. Consider an experiment on testing the efficiency of two drugs on lowering 
+heart rate for heart disease patients. Eight patients are administered three 
+drugs (one of them is the placebo control) at three different years and heart 
+rate measured every five minutes for a total of four measurements. Suppose that 
+the heart rates did not change significantly through the three years. That means 
+there is no year effect on the experiment. Perform an appropriate test to 
+examine the main effect of the drugs on lowering heart rate, the main effect of 
+time and the interaction between drug and time. The data is given below:
+Patient ID,         Drug AX23,                 Drug BWW9,                 Control
+            5min, 10min, 15min, 20min, 5min, 10min, 15min, 20min, 5min, 10min, 15min, 20min
+1,          82,   86,    81,    77,    85,   66,    83,    80,    69,   73,    72,    74
+2,          78,   83,    88,    81,    82,   86,    80,    64,    66,   62,    67,    73
+3,          81,   82,    81,    75,    71,   78,    70,    75,    84,   90,    88,    87
+4,          82,   83,    83,    89,    83,   88,    79,    81,    80,   81,    77,    72
+5,          86,   79,    77,    86,    86,   85,    76,    76,    72,   72,    69,    70
+6,          84,   83,    84,    77,    86,   82,    83,    80,    65,   62,    65,    61
+7,          82,   73,    78,    70,    79,   83,    80,    81,    75,   69,    69,    68
+8,          89,   85,    76,    80,    83,   84,    78,    81,    71,   70,    65,    65
+a) Formulate the null and alternative hypotheses for testing the main effect of 
+time.
+$H_0: μ_\text{5min} = μ_\text{10min} = μ_\text{15min} = μ_\text{20min}$ vs $H_a: \text{At least one μ differs}$
+b) What are the F-statistic and p-value for testing the main effect of time?
+c) What decision can you make for the main effect of time?
+d) Formulate the null and alternative hypotheses for testing the main effect of 
+drug.
+$H_0: μ_\text{AX23} = μ_\text{BWW9} = μ_\text{Control}$ vs $H_a: \text{At least one μ differs}$
+e) What is the F and p-value for testing the main effect of drug?
+f) What decision can you make for the main effect of drug?
+g) What are the F-value and p-value for the interaction term? What can you 
+conclude about the interaction term (is it significant)?
+h) If there are significant differences in the heart rate after taking different 
+drugs, which two of drugs are significantly different?
+
+3
+```{r 3}
+# b) - c)
+time_5min <- c(82, 78, 81, 82, 86, 84, 82, 89, 85, 82, 71, 83, 86, 86, 79, 83, 69, 66, 84, 80, 72, 65, 75, 71)
+time_10min <- c(86, 83, 82, 83, 79, 83, 73, 85, 66, 86, 78, 88, 85, 82, 83, 84, 73, 62, 90, 81, 72, 62, 69, 70)
+time_15min <- c(81, 88, 81, 83, 77, 84, 78, 76, 83, 80, 70, 79, 76, 83, 80, 78, 72, 67, 88, 77, 69, 65, 69, 65)
+time_20min <- c(77, 81, 75, 89, 86, 77, 70, 80, 80, 64, 75, 81, 76, 80, 81, 81, 74, 73, 87, 72, 70, 61, 68, 65)
+
+data3 <- data.frame(
+  Subject = factor(rep(1:8, each = 12)),
+  Time = factor(rep(c("5min", "10min", "15min", "20min"), each = 6, times = 2)),
+  HeartRate = c(time_5min, time_10min, time_15min, time_20min),
+  Drug = factor(rep(c("AX23", "BWW9", "Control"), each = 32))
+)
+
+# fit linear mixed-effects model
+model1 <- lme(HeartRate~Time, random = ~1 | Subject, data = data3)
+anova(model1) # examine the main effect of time
+
+# e) - f)
+AX23 <- c(82, 86, 81, 77, 78, 83, 88, 81, 81, 82, 81, 75, 82, 83, 83, 89, 86, 79, 77, 86, 84, 83, 84, 77, 82, 73, 78, 70, 89, 85, 76, 80)
+BWW9 <- c(85, 66, 83, 80, 82, 86, 80, 64, 71, 78, 70, 75, 83, 88, 79, 81, 86, 85, 76, 76, 86, 82, 83, 80, 79, 83, 80, 81, 83, 84, 78, 81)
+Control <- c(69, 73, 72, 74, 66, 62, 67, 73, 84, 90, 88, 87, 80, 81, 77, 72, 72, 72, 69, 70, 65, 62, 65, 61, 75, 69, 69, 68, 71, 70, 65, 65)
+
+data4 <- data.frame(
+  Subject = factor(rep(1:8, each = 12)),
+  Time = factor(rep(c("5min", "10min", "15min", "20min"), each = 3, times = 2)),
+  HeartRate = c(AX23, BWW9, Control),
+  Drug = factor(rep(c("AX23", "BWW9", "Control"), each = 32))
+)
+
+# fit linear mixed-effects model
+model2 <- lme(HeartRate~Drug, random = ~1 | Subject, data = data4)
+anova(model2) # examine the main effect of drug
+
+# g)
+data5 <- data.frame(
+  Subject = factor(rep(1:8, each = 12)),
+  Time = factor(rep(c("5min", "10min", "15min", "20min"), times = 8)),
+  Drug = factor(rep(c("AX23", "BWW9", "Control"), each = 4, times = 8)),
+  HeartRate = c(time_5min, time_10min, time_15min, time_20min)
+)
+# fit linear mixed-effects model
+model3 <- lme(HeartRate~Time * Drug, random = ~1 | Subject, data = data5)
+anova(model3)
+
+# h)
+posthoc_drug <- glht(model, linfct = mcp(Drug = "Tukey"))
+summary(posthoc_drug)
+
+```
+b) - c)
+f = 8.06; p-value = 1e-04 (0.0001)
+Reject H0; there is evidence to support the claim that the means of heart rate 
+measurements differ across different time points.
+e) - f)
+f = 10.125; p-value = 1e-04 (0.0001)
+Reject H0; there is evidence to support the claim that a significant difference 
+in heart rate effects between the drugs exists.
+g) 
+f = 1.202; p-value = 0.3144
+The interaction term is not significant. This indicates that the effect of the 
+drugs does not change significantly over time.
+h) 
+There is a sig. diff. bt. Control-AX23 due to the low p-value.
+There is a sig. diff. bt. Control-BWW9 due to the low p-value.
+
+
+4. Do a two-way repeated-measures ANOVA for the following data. We measured 
+reading of the altimeters at two different temperatures (low and high) and 
+measured the reading at four positions of altimeters (high, low, right, left). 
+The DV is accuracy of altimeter reading. High scores show more accurate reading 
+than low scores. Perform your analysis and answer the following questions to 
+test the claim that there is a significant mean readings between the positions 
+and between the temperature levels, and that there is a significant interaction
+between temperature and position.
+Altimeter,    Low temperature,        High temperature
+           High, Low, Left, Right, High, Low, Left, Right
+1,         84,   45,  47,   90,    80,   49,  45,   73
+2,         69,   28,  12,   68,    33,   43,  18,   46
+3,         99,   40,  35,   71,    36,   22,  56,   38
+4,         70,   35,  29,   59,    51,   20,  42,   50
+5,         91,   18,  19,   85,    37,   44,  38,   39
+a) Formulate the null and alternative hypotheses for testing the main effect of 
+temperature on the accuracy of reading.
+$H_0: μ_\text{Low temperature} = μ_\text{High temperature}$ vs $H_a: μ_\text{Low temperature} ≠ μ_\text{High temperature}$
+b) What is the F value and p-value for testing the main effect of temperature?
+c) What decision can you make for that main effect of temperature?
+d) What is the F and p-value for testing the main effect of position?
+e) What decision can you make for the main effect of position?
+f) What is the F and p-value for testing the interaction? What can you conclude 
+about the interaction term (is it significant)?
+g) If there is a significant interaction, separate the data by position and test 
+whether there is a significant difference between the low and high temperature 
+at each position. (list your t-statistic, p-value and conclusion for each 
+position)
+
+4
+```{r 4}
+# DV = alt reading
+# IV1 = temp
+# IV2 = 4 positions
+# subject = subject #
+
+# b)
+subject <- factor(rep(1:5, each = 8))
+temperature <- factor(rep(c("Low", "High"), each = 4, times = 5))
+position <- rep(c("High", "Low", "Left", "Right"), times = 5, each = 2)
+reading <- c(84, 45, 47, 90, 80, 49, 45, 73, 69, 28, 12, 68, 33, 43, 18, 46,
+             99, 40, 35, 71, 36, 22, 56, 38, 70, 35, 29, 59, 51, 20, 42, 50,
+             91, 18, 19, 85, 37, 44, 38, 39)
+data6 <- data.frame(Subject = subject, Temperature = temperature, 
+                    Position = position, Reading = reading)
+# fit linear mixed-effects model
+model4 <- lme(Reading~Temperature, random = ~1 | Subject, data = data6)
+anova(model4) # main effect of temperature
+
+# d)
+model_position <- lme(Reading~Position, random = ~1 | Subject, data = data6)
+anova(model_position)
+
+# f)
+model_interaction <- aov(Reading~Temperature * Position + Error(Subject), data = data6)
+summary(model_interaction)
+
+
+```
+b) - c)
+f = 2.93429; p-value = 0.0958
+Fail to reject H0; there is no evidence to support the claim that there is a 
+mean difference in the accuracy of altimeter readings between the temperature 
+levels.
+d) - e)
+f = 1.10597; p-value = 0.3611
+There is no evidence of a significant difference among the positions.
+f) 
+f = 0.256; p-value = 0.776
+The interaction term is not significant. The effect of temperature on altimeter 
+accuracy does not change across positions.
+
+

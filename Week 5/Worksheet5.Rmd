@@ -1,0 +1,119 @@
+---
+title: "Worksheet 5"
+author: "Peyton Hall"
+date: "02/14/2025"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Necessary Libraries
+```{r Necessary Libraries}
+library(reshape2)
+# install.packages("reshape2")
+# install.packages("nlme")
+# install.packages("multcomp")
+library(nlme)
+library(multcomp)
+```
+
+
+1. The attractiveness of a person’s face is traditionally considered to be related to physical features, such as
+how symmetrical the features are, and how close a face is to the “average” face over many people.
+However, there is also evidence that perceived facial attractiveness can vary due to factors outside of the
+face. In what has become known as the “cheerleader effect”, the same face is perceived to be more
+attractive when seen in a group, as compared to when it is seen alone.
+Carragher, Thomas, Gwinn, & Nicholls (2019) set out to test this hypothesis. In one part of their study
+(Experiment 1), they let participants rate the attractiveness of a face when presented by itself (the Alone
+condition), as part of a group of different faces (the Different condition), and as part of a group of similar
+faces (the Similar condition).
+Perform a hypothesis test to see whether the mean attractiveness scores are significantly different among
+the three conditions using the significance level of 0.05.
+Individual Alone Different faces in a group Similar faces in a group
+1 56.3 55.9 54.3
+2 49.8 49.7 51.2
+3 47.1 52.5 53.2
+4 38.9 41.6 42.1
+5 44.7 47.0 50.5
+6 45.2 43.9 46.2
+7 36.8 37.3 38.8
+8 53.8 52.7 53.9
+9 45.1 46.2 49.1
+a) Formulate the null and alternative hypotheses
+$H_0: μ_\text{Alone} = μ_\text{Different} = μ_\text{Similar}$ vs $H_a: \text{At least two means are different}$
+b) What is the test statistic and p-value?
+c) What decision can you make to H0. Explain your decision in the context
+f) if there is a significant difference, which two conditions are significantly different?
+
+```{r}
+individual1 <- 1:9
+treatment <- rep(c("alone", "diff_face", "similar_face"), each = 9)
+scores <- c(56.3, 49.8, 47.1, 38.9, 44.7, 45.2, 36.8, 53.8, 45.1, 55.9, 49.7, 52.5, 41.6, 47.0, 43.9, 37.3, 52.7, 46.2,
+            54.3, 51.2, 53.2, 42.1, 50.5, 46.2, 38.8, 53.9, 49.1)
+treatment <- as.factor(treatment)
+attractdf <- data.frame(individual1, treatment, scores)
+#         lme(DV~IV, . . .)
+model2 <- lme(scores~treatment, random = ~ 1 | individual1, data = attractdf)
+anova(model2)
+posthoc2 <- glht(model2, linfct = mcp(treatment = "Tukey"))
+summary(posthoc2)
+
+```
+f = 5.64; p-value = 0.014
+Reject H0; There is evidence to support that there is a significant difference 
+between at least 2 conditions. The significant difference is between the face 
+alone and among similar faces.
+The "Alone" and "Similar faces in a group" conditions are significantly different
+
+2. We would like to conduct a survey to investigate excessive coffee drinking. We took a sample of 10
+individuals and surveyed how many cups of coffee they drink in the morning and how many they drink in
+the afternoon. We also would like to know the volume of the cups (8oz, 12oz, or 16oz). The data on the
+worksheet is what we obtained from the 10 individuals in one day. Perform an appropriate analysis to
+investigate whether people drink significant different amount of coffee between morning and
+afternoon, whether there are significant effects from the types of cups and if there is any interaction
+between time and type of cups.
+a) What is the F and p-value for testing the main effect of time?
+b) What decision can you make for the main effect of time?
+c) What is the F and p-value for testing the main effect of coffee cup size?
+d) What decision can you make for the main effect of coffee cup size?
+e) What can you conclude about significance of the interaction? What is the p-value
+
+```{r}
+# Sample data based on the provided information
+data <- data.frame(
+  ID = 1:10,
+  Morning_8oz = c(1, 1, 0, 0, 2, 0, 1, 1, 1, 1),
+  Morning_12oz = c(0, 1, 0, 0, 1, 1, 1, 0, 1, 1),
+  Morning_16oz = c(0, 1, 1, 0, 1, 1, 0, 1, 0, 0),
+  Afternoon_8oz = c(1, 1, 0, 0, 1, 1, 0, 1, 1, 1),
+  Afternoon_12oz = c(0, 1, 0, 0, 1, 0, 0, 0, 1, 1),
+  Afternoon_16oz = c(0, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+)
+
+# Transform data to long format suitable for ANOVA
+library(tidyr)
+library(dplyr)
+
+data_long <- data %>%
+  pivot_longer(cols = -ID, names_to = c("Time", "Size"), names_sep = "_") %>%
+  mutate(Time = ifelse(grepl("Morning", Time), "Morning", "Afternoon"),
+         Size = factor(gsub("\\D", "", Size), levels = c("8", "12", "16")))
+
+# Fit the two-way ANOVA model
+model <- aov(value ~ Time * Size, data = data_long)
+summary(model)
+
+```
+f = 3.173; p-value = 0.0805
+Fail to reject H0; there is no effect of time on coffee consumption.
+f = 3.950; p-value = 0.0251
+Reject H0; there is an effect of coffee cup size on coffee consumption.
+The significance of the interaction is not statistically significant.
+p-value = 0.6380
